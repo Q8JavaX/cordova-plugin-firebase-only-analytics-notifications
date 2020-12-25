@@ -17,6 +17,10 @@ exports.hasPermission = function (success, error) {
   exec(success, error, PLUGIN_NAME, "hasPermission", []);
 };
 
+exports.getInstallerPackageName = function (success, error) {
+  exec(success, error, PLUGIN_NAME, "getInstallerPackageName", []);
+};
+
 exports.grantPermission = function (success, error) {
   exec(success, error, PLUGIN_NAME, "grantPermission", []);
 };
