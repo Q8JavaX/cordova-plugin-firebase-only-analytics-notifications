@@ -81,7 +81,7 @@ public class FirebasePlugin extends CordovaPlugin {
     final Bundle extras = this.cordova.getActivity().getIntent().getExtras();
     this.cordova.getThreadPool().execute(new Runnable() {
       public void run() {
-        Log.d(TAG, "Starting Firebase plugin");
+        //Log.d(TAG, "Starting Firebase plugin");
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(context);
         mFirebaseAnalytics.setAnalyticsCollectionEnabled(true);
         if (extras != null && extras.size() > 1) {
@@ -107,6 +107,9 @@ public class FirebasePlugin extends CordovaPlugin {
       return true;
     } else if (action.equals("hasPermission")) {
       this.hasPermission(callbackContext);
+      return true;
+    } else if (action.equals("getInstallerPackageName")) {
+      this.getInstallerPackageName(callbackContext);
       return true;
     } else if (action.equals("setBadgeNumber")) {
       this.setBadgeNumber(callbackContext, args.getInt(0));
@@ -242,14 +245,14 @@ public class FirebasePlugin extends CordovaPlugin {
   // Cloud Messaging FCM
   //
   public static void sendNotification(Bundle bundle, Context context) {
-    Log.d(TAG, "sendNotification called");
+    //Log.d(TAG, "sendNotification called");
     if (!FirebasePlugin.hasNotificationsCallback()) {
       if (FirebasePlugin.notificationStack == null) {
         FirebasePlugin.notificationStack = new ArrayList<Bundle>();
       }
       notificationStack.add(bundle);
 
-      Log.d(TAG, "sendNotification notificationStack.add");
+      //Log.d(TAG, "sendNotification notificationStack.add");
       return;
     }
 
@@ -270,14 +273,14 @@ public class FirebasePlugin extends CordovaPlugin {
       PluginResult pluginresult = new PluginResult(PluginResult.Status.OK, json);
       pluginresult.setKeepCallback(true);
       callbackContext.sendPluginResult(pluginresult);
-      Log.d(TAG, "sendNotification success");
+      //Log.d(TAG, "sendNotification success");
     }
   }
 
   public static void sendToken(String token) {
-    Log.d(TAG, "sendToken called");
+    //Log.d(TAG, "sendToken called");
     if (FirebasePlugin.tokenRefreshCallbackContext == null) {
-      Log.d(TAG, "sendToken tokenRefreshCallbackContext null");
+      //Log.d(TAG, "sendToken tokenRefreshCallbackContext null");
       return;
     }
 
@@ -286,25 +289,25 @@ public class FirebasePlugin extends CordovaPlugin {
       PluginResult pluginresult = new PluginResult(PluginResult.Status.OK, token);
       pluginresult.setKeepCallback(true);
       callbackContext.sendPluginResult(pluginresult);
-      Log.d(TAG, "sendToken success. token: " + token);
+      //Log.d(TAG, "sendToken success. token: " + token);
     }
   }
 
   private void onNotificationOpen(final CallbackContext callbackContext) {
-    Log.d(TAG, "onNotificationOpen called");
+    //Log.d(TAG, "onNotificationOpen called");
     FirebasePlugin.notificationCallbackContext = callbackContext;
     if (FirebasePlugin.notificationStack != null) {
       for (Bundle bundle : FirebasePlugin.notificationStack) {
         FirebasePlugin.sendNotification(bundle, this.cordova.getActivity().getApplicationContext());
-        Log.d(TAG, "onNotificationOpen sendNotification");
+        //Log.d(TAG, "onNotificationOpen sendNotification");
       }
       FirebasePlugin.notificationStack.clear();
-      Log.d(TAG, "onNotificationOpen notificationStack.clear");
+      //Log.d(TAG, "onNotificationOpen notificationStack.clear");
     }
   }
 
   private void onTokenRefresh(final CallbackContext callbackContext) {
-    Log.d(TAG, "onTokenRefresh called");
+    //Log.d(TAG, "onTokenRefresh called");
     FirebasePlugin.tokenRefreshCallbackContext = callbackContext;
 
     cordova.getThreadPool().execute(new Runnable() {
@@ -313,7 +316,7 @@ public class FirebasePlugin extends CordovaPlugin {
           String currentToken = FirebaseInstanceId.getInstance().getToken();
           if (currentToken != null) {
             FirebasePlugin.sendToken(currentToken);
-            Log.d(TAG, "onTokenRefresh success. token: " + currentToken);
+            //Log.d(TAG, "onTokenRefresh success. token: " + currentToken);
           }
         } catch (Exception e) {
           Crashlytics.logException(e);
@@ -324,13 +327,13 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void getId(final CallbackContext callbackContext) {
-    Log.d(TAG, "getId called");
+    //Log.d(TAG, "getId called");
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
           String id = FirebaseInstanceId.getInstance().getId();
           callbackContext.success(id);
-          Log.d(TAG, "getId success. id: " + id);
+          //Log.d(TAG, "getId success. id: " + id);
         } catch (Exception e) {
           Crashlytics.logException(e);
           callbackContext.error(e.getMessage());
@@ -340,13 +343,13 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void getToken(final CallbackContext callbackContext) {
-    Log.d(TAG, "getToken called");
+    //Log.d(TAG, "getToken called");
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
           String token = FirebaseInstanceId.getInstance().getToken();
           callbackContext.success(token);
-          Log.d(TAG, "getToken success. token: " + token);
+          //Log.d(TAG, "getToken success. token: " + token);
         } catch (Exception e) {
           Crashlytics.logException(e);
           callbackContext.error(e.getMessage());
@@ -356,7 +359,7 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void hasPermission(final CallbackContext callbackContext) {
-    Log.d(TAG, "hasPermission called");
+    //Log.d(TAG, "hasPermission called");
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
@@ -366,7 +369,23 @@ public class FirebasePlugin extends CordovaPlugin {
           JSONObject object = new JSONObject();
           object.put("isEnabled", areNotificationsEnabled);
           callbackContext.success(object);
-          Log.d(TAG, "hasPermission success. areEnabled: " + (areNotificationsEnabled ? "true" : "false"));
+          //Log.d(TAG, "hasPermission success. areEnabled: " + (areNotificationsEnabled ? "true" : "false"));
+        } catch (Exception e) {
+          Crashlytics.logException(e);
+          callbackContext.error(e.getMessage());
+        }
+      }
+    });
+  }
+  
+  private void getInstallerPackageName(final CallbackContext callbackContext) {
+    //Log.d(TAG, "getToken called");
+    cordova.getThreadPool().execute(new Runnable() {
+      public void run() {
+        try {
+          Context context = cordova.getActivity();
+          String installerPackageName = context.getPackageManager().getInstallerPackageName(context.getPackageName());
+          callbackContext.success(installerPackageName);
         } catch (Exception e) {
           Crashlytics.logException(e);
           callbackContext.error(e.getMessage());
@@ -376,7 +395,7 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void setBadgeNumber(final CallbackContext callbackContext, final int number) {
-    Log.d(TAG, "setBadgeNumber called. number: " + Integer.toString(number));
+    //Log.d(TAG, "setBadgeNumber called. number: " + Integer.toString(number));
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
@@ -386,7 +405,7 @@ public class FirebasePlugin extends CordovaPlugin {
           editor.apply();
           ShortcutBadger.applyCount(context, number);
           callbackContext.success();
-          Log.d(TAG, "setBadgeNumber success");
+          //Log.d(TAG, "setBadgeNumber success");
         } catch (Exception e) {
           Crashlytics.logException(e);
           callbackContext.error(e.getMessage());
@@ -396,7 +415,7 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void getBadgeNumber(final CallbackContext callbackContext) {
-    Log.d(TAG, "getBadgeNumber called");
+    //Log.d(TAG, "getBadgeNumber called");
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
@@ -404,7 +423,7 @@ public class FirebasePlugin extends CordovaPlugin {
           SharedPreferences settings = context.getSharedPreferences(KEY, Context.MODE_PRIVATE);
           int number = settings.getInt(KEY, 0);
           callbackContext.success(number);
-          Log.d(TAG, "getBadgeNumber success. number: " + Integer.toString(number));
+          //Log.d(TAG, "getBadgeNumber success. number: " + Integer.toString(number));
         } catch (Exception e) {
           Crashlytics.logException(e);
           callbackContext.error(e.getMessage());
@@ -414,13 +433,13 @@ public class FirebasePlugin extends CordovaPlugin {
   }
   
   private void subscribe(final CallbackContext callbackContext, final String topic) {
-    Log.d(TAG, "subscribe called. topic: " + topic);
+    //Log.d(TAG, "subscribe called. topic: " + topic);
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
           FirebaseMessaging.getInstance().subscribeToTopic(topic);
           callbackContext.success();
-          Log.d(TAG, "subscribe success");
+          //Log.d(TAG, "subscribe success");
         } catch (Exception e) {
           Crashlytics.logException(e);
           callbackContext.error(e.getMessage());
@@ -430,13 +449,13 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void unsubscribe(final CallbackContext callbackContext, final String topic) {
-    Log.d(TAG, "unsubscribe called. topic: " + topic);
+    //Log.d(TAG, "unsubscribe called. topic: " + topic);
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
           FirebaseMessaging.getInstance().unsubscribeFromTopic(topic);
           callbackContext.success();
-          Log.d(TAG, "unsubscribe success");
+          //Log.d(TAG, "unsubscribe success");
         } catch (Exception e) {
           Crashlytics.logException(e);
           callbackContext.error(e.getMessage());
@@ -446,7 +465,7 @@ public class FirebasePlugin extends CordovaPlugin {
   }
   
   private void unregister(final CallbackContext callbackContext) {
-    Log.d(TAG, "unregister called");
+    //Log.d(TAG, "unregister called");
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
@@ -456,7 +475,7 @@ public class FirebasePlugin extends CordovaPlugin {
             FirebasePlugin.sendToken(currentToken);
           }
           callbackContext.success();
-          Log.d(TAG, "unregister success. currentToken: " + currentToken);
+          //Log.d(TAG, "unregister success. currentToken: " + currentToken);
         } catch (Exception e) {
           Crashlytics.logException(e);
           callbackContext.error(e.getMessage());
@@ -466,7 +485,7 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void clearAllNotifications(final CallbackContext callbackContext) {
-    Log.d(TAG, "clearAllNotifications called");
+    //Log.d(TAG, "clearAllNotifications called");
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
@@ -474,7 +493,7 @@ public class FirebasePlugin extends CordovaPlugin {
           NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
           nm.cancelAll();
           callbackContext.success();
-          Log.d(TAG, "clearAllNotifications success");
+          //Log.d(TAG, "clearAllNotifications success");
         } catch (Exception e) {
           Crashlytics.log(e.getMessage());
         }
@@ -533,7 +552,7 @@ public class FirebasePlugin extends CordovaPlugin {
   // Analytics
   //
   private void logEvent(final CallbackContext callbackContext, final String name, final JSONObject params) throws JSONException {
-    Log.d(TAG, "logEvent called. name: " + name);
+    //Log.d(TAG, "logEvent called. name: " + name);
     final Bundle bundle = new Bundle();
     Iterator iter = params.keys();
     while (iter.hasNext()) {
@@ -552,7 +571,7 @@ public class FirebasePlugin extends CordovaPlugin {
         try {
           mFirebaseAnalytics.logEvent(name, bundle);
           callbackContext.success();
-          Log.d(TAG, "logEvent success");
+          //Log.d(TAG, "logEvent success");
         } catch (Exception e) {
           Crashlytics.logException(e);
           callbackContext.error(e.getMessage());
@@ -562,13 +581,13 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void setScreenName(final CallbackContext callbackContext, final String name) {
-    Log.d(TAG, "setScreenName called. name: " + name);
+    //Log.d(TAG, "setScreenName called. name: " + name);
     cordova.getActivity().runOnUiThread(new Runnable() {
       public void run() {
         try {
           mFirebaseAnalytics.setCurrentScreen(cordova.getActivity(), name, null);
           callbackContext.success();
-          Log.d(TAG, "setScreenName success");
+          //Log.d(TAG, "setScreenName success");
         } catch (Exception e) {
           Crashlytics.logException(e);
           callbackContext.error(e.getMessage());
@@ -578,13 +597,13 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void setUserId(final CallbackContext callbackContext, final String id) {
-    Log.d(TAG, "setUserId called. id: " + id);
+    //Log.d(TAG, "setUserId called. id: " + id);
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
           mFirebaseAnalytics.setUserId(id);
           callbackContext.success();
-          Log.d(TAG, "setUserId success");
+          //Log.d(TAG, "setUserId success");
         } catch (Exception e) {
           Crashlytics.logException(e);
           callbackContext.error(e.getMessage());
@@ -594,13 +613,13 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void setUserProperty(final CallbackContext callbackContext, final String name, final String value) {
-    Log.d(TAG, "setUserProperty called. name: " + name + " value: " + value);
+    //Log.d(TAG, "setUserProperty called. name: " + name + " value: " + value);
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
           mFirebaseAnalytics.setUserProperty(name, value);
           callbackContext.success();
-          Log.d(TAG, "setUserProperty success");
+          //Log.d(TAG, "setUserProperty success");
         } catch (Exception e) {
           Crashlytics.logException(e);
           callbackContext.error(e.getMessage());
@@ -610,14 +629,14 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void setAnalyticsCollectionEnabled(final CallbackContext callbackContext, final boolean enabled) {
-    Log.d(TAG, "setAnalyticsCollectionEnabled called. enabled: " + (enabled ? "true" : "false"));
+    //Log.d(TAG, "setAnalyticsCollectionEnabled called. enabled: " + (enabled ? "true" : "false"));
     final FirebasePlugin self = this;
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
           mFirebaseAnalytics.setAnalyticsCollectionEnabled(enabled);
           callbackContext.success();
-          Log.d(TAG, "setAnalyticsCollectionEnabled success");
+          //Log.d(TAG, "setAnalyticsCollectionEnabled success");
         } catch (Exception e) {
           Crashlytics.log(e.getMessage());
           callbackContext.error(e.getMessage());
@@ -632,7 +651,7 @@ public class FirebasePlugin extends CordovaPlugin {
   private HashMap<String,Trace> traces = new HashMap<String,Trace>();
 
   private void startTrace(final CallbackContext callbackContext, final String name) {
-    Log.d(TAG, "startTrace called. name: " + name);
+    //Log.d(TAG, "startTrace called. name: " + name);
     final FirebasePlugin self = this;
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
@@ -647,7 +666,7 @@ public class FirebasePlugin extends CordovaPlugin {
             self.traces.put(name, myTrace);
           }
           callbackContext.success();
-          Log.d(TAG, "startTrace success");
+          //Log.d(TAG, "startTrace success");
         } catch (Exception e) {
           Crashlytics.logException(e);
           callbackContext.error(e.getMessage());
@@ -657,7 +676,7 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void incrementCounter(final CallbackContext callbackContext, final String name, final String counterNamed) {
-    Log.d(TAG, "incrementCounter called. name: " + name + " counterNamed: " + counterNamed);
+    //Log.d(TAG, "incrementCounter called. name: " + name + " counterNamed: " + counterNamed);
     final FirebasePlugin self = this;
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
@@ -669,10 +688,10 @@ public class FirebasePlugin extends CordovaPlugin {
           if (myTrace != null && myTrace instanceof Trace) {
             myTrace.incrementMetric(counterNamed, 1);
             callbackContext.success();
-            Log.d(TAG, "incrementCounter success");
+            //Log.d(TAG, "incrementCounter success");
           } else {
             callbackContext.error("Trace not found");
-            Log.d(TAG, "incrementCounter trace not found");
+            //Log.d(TAG, "incrementCounter trace not found");
           }
         } catch (Exception e) {
           Crashlytics.logException(e);
@@ -683,7 +702,7 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void stopTrace(final CallbackContext callbackContext, final String name) {
-    Log.d(TAG, "stopTrace called. name: " + name);
+    //Log.d(TAG, "stopTrace called. name: " + name);
     final FirebasePlugin self = this;
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
@@ -696,10 +715,10 @@ public class FirebasePlugin extends CordovaPlugin {
             myTrace.stop();
             self.traces.remove(name);
             callbackContext.success();
-            Log.d(TAG, "stopTrace success");
+            //Log.d(TAG, "stopTrace success");
           } else {
             callbackContext.error("Trace not found");
-            Log.d(TAG, "stopTrace trace not found");
+            //Log.d(TAG, "stopTrace trace not found");
           }
         } catch (Exception e) {
           Crashlytics.logException(e);
@@ -710,7 +729,7 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void addTraceAttribute(final CallbackContext callbackContext, final String traceName, final String attribute, final String value) {
-    Log.d(TAG, "addTraceAttribute called. traceName: " + traceName + " attribute: " + attribute + " value: " + value);
+    //Log.d(TAG, "addTraceAttribute called. traceName: " + traceName + " attribute: " + attribute + " value: " + value);
     final FirebasePlugin self = this;
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
@@ -722,10 +741,10 @@ public class FirebasePlugin extends CordovaPlugin {
           if (myTrace != null && myTrace instanceof Trace) {
             myTrace.putAttribute(attribute, value);
             callbackContext.success();
-            Log.d(TAG, "addTraceAttribute success");
+            //Log.d(TAG, "addTraceAttribute success");
           } else {
             callbackContext.error("Trace not found");
-            Log.d(TAG, "addTraceAttribute trace not found");
+            //Log.d(TAG, "addTraceAttribute trace not found");
           }
         } catch (Exception e) {
           Crashlytics.log(e.getMessage());
@@ -736,14 +755,14 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void setPerformanceCollectionEnabled(final CallbackContext callbackContext, final boolean enabled) {
-    Log.d(TAG, "setPerformanceCollectionEnabled called. enabled: " + (enabled ? "true" : "false"));
+    //Log.d(TAG, "setPerformanceCollectionEnabled called. enabled: " + (enabled ? "true" : "false"));
     final FirebasePlugin self = this;
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
           FirebasePerformance.getInstance().setPerformanceCollectionEnabled(enabled);
           callbackContext.success();
-          Log.d(TAG, "setPerformanceCollectionEnabled success");
+          //Log.d(TAG, "setPerformanceCollectionEnabled success");
         } catch (Exception e) {
           Crashlytics.log(e.getMessage());
           callbackContext.error(e.getMessage());
@@ -756,7 +775,7 @@ public class FirebasePlugin extends CordovaPlugin {
   // Crashlytics
   //
   private void forceCrashlytics(final CallbackContext callbackContext) {
-    Log.d(TAG, "forceCrashlytics called");
+    //Log.d(TAG, "forceCrashlytics called");
     final FirebasePlugin self = this;
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
@@ -766,13 +785,13 @@ public class FirebasePlugin extends CordovaPlugin {
   }
   
   private void logError(final CallbackContext callbackContext, final String message) throws JSONException {
-    Log.d(TAG, "logError called. message: " + message);
+    //Log.d(TAG, "logError called. message: " + message);
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
           Crashlytics.logException(new Exception(message));
           callbackContext.success(1);
-          Log.d(TAG, "logError success");
+          //Log.d(TAG, "logError success");
         } catch (Exception e) {
           Crashlytics.log(e.getMessage());
           callbackContext.error(e.getMessage());
@@ -782,13 +801,13 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void setCrashlyticsUserId(final CallbackContext callbackContext, final String userId) {
-    Log.d(TAG, "setCrashlyticsUserId called. userId: " + userId);
+    //Log.d(TAG, "setCrashlyticsUserId called. userId: " + userId);
     cordova.getActivity().runOnUiThread(new Runnable() {
       public void run() {
         try {
           Crashlytics.setUserIdentifier(userId);
           callbackContext.success();
-          Log.d(TAG, "setCrashlyticsUserId success");
+          //Log.d(TAG, "setCrashlyticsUserId success");
         } catch (Exception e) {
           Crashlytics.logException(e);
           callbackContext.error(e.getMessage());
@@ -801,12 +820,12 @@ public class FirebasePlugin extends CordovaPlugin {
   // Remote Configuration
   //
   private void activateFetched(final CallbackContext callbackContext) {
-    Log.d(TAG, "activateFetched called");
+    //Log.d(TAG, "activateFetched called");
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
           final boolean activated = FirebaseRemoteConfig.getInstance().activateFetched();
-          Log.d(TAG, "activateFetched success. activated: " + String.valueOf(activated));
+          //Log.d(TAG, "activateFetched success. activated: " + String.valueOf(activated));
           callbackContext.success(String.valueOf(activated));
         } catch (Exception e) {
           Crashlytics.logException(e);
@@ -817,12 +836,12 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void fetch(CallbackContext callbackContext) {
-    Log.d(TAG, "fetch called");
+    //Log.d(TAG, "fetch called");
     fetch(callbackContext, FirebaseRemoteConfig.getInstance().fetch());
   }
 
   private void fetch(CallbackContext callbackContext, long cacheExpirationSeconds) {
-    Log.d(TAG, "fetch called. cacheExpirationSeconds: " + String.valueOf(cacheExpirationSeconds));
+    //Log.d(TAG, "fetch called. cacheExpirationSeconds: " + String.valueOf(cacheExpirationSeconds));
     fetch(callbackContext, FirebaseRemoteConfig.getInstance().fetch(cacheExpirationSeconds));
   }
 
@@ -833,13 +852,13 @@ public class FirebasePlugin extends CordovaPlugin {
           task.addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void data) {
-              Log.d(TAG, "fetch success");
+              //Log.d(TAG, "fetch success");
               callbackContext.success();
             }
           }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(Exception e) {
-              Log.d(TAG, "fetch error. error: " + e.getMessage());
+              //Log.d(TAG, "fetch error. error: " + e.getMessage());
               callbackContext.error(e.getMessage());
             }
           });
@@ -869,12 +888,12 @@ public class FirebasePlugin extends CordovaPlugin {
   }
 
   private void getValue(final CallbackContext callbackContext, final String key) {
-    Log.d(TAG, "getValue called. key: " + key);
+    //Log.d(TAG, "getValue called. key: " + key);
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         try {
           FirebaseRemoteConfigValue value = FirebaseRemoteConfig.getInstance().getValue(key);
-          Log.d(TAG, "getValue success. value: " + value.asString());
+          //Log.d(TAG, "getValue success. value: " + value.asString());
           callbackContext.success(value.asString());
         } catch (Exception e) {
           Crashlytics.logException(e);
